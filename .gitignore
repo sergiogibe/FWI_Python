@@ -1,0 +1,6 @@
+venv/
+src/__pycache__.py
+src/build/
+src/Csolver.c
+src/Csolver.cpython-38-x86_64-linux-gnu.so
+
