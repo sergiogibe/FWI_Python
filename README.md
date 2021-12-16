@@ -18,7 +18,7 @@ The purpose of this code is to help students learn the FWI method. The Python la
 
 To run this code properly you need to open and run one of the two examples: ```example1``` or ```example2```. 
 
-Then, you can use the modules to make your own FWI implementation. 
+Then, you can use the modules to make your own FWI implementation. You also need to remember to compile the solvers as it is described bellow.
 
 ## General guidelines:
 
