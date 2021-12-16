@@ -81,8 +81,6 @@ If you want to change anything in the solver go to ```Csolver.pyx```. After that
 ## Repository organization:
 
 There are some examples in ```evolution_example``` of each material model running for 10 iteration with no step control.
-You can also finding some images of the propagation in ```propagation_view```.
-The respective design is in ```design_example```.
 
 ## Contact:
 
