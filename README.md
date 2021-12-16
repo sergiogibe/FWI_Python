@@ -1,4 +1,4 @@
-## A FWI implementation in python..
+## An FWI implementation in Python..
 
 The Full Waveform Inversion method was first introduced by Lailly and Tarantola. It consists of a comparative analysis between the response of a simulated model and that of experimental data collected. This is characterized as a highly non-linear optimization problem, which in many cases presents a particularly difficult solution to be found. Recent works show a recurrent difficulty in identifying more complex profiles, justifying the constant search for improvement of the inversion procedure. Besides this, the solution to the transient propagation problem makes the method very costly in terms of processing time and memory usage, therefore the solution of this problem is the target of several studies on HPC (High-Performance Computing). Regarding the application of the method, the FWI acoustic model has been a commonly used tool in the oil and gas industry to estimate velocity models.
 
