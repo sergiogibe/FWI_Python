@@ -70,13 +70,13 @@ class MatmodelFWI(Matmod):
 
     def read_RealModel(self):
 
-        with open('../FWI_Python/data_dir/real_model.npy', 'rb') as f:
+        with open('../../FWI_Python/data_dir/real_model.npy', 'rb') as f:
             self.realModel = np.float32(np.load(f))
         self.plot_realModel()
 
     def read_Guess(self):
 
-        with open('../FWI_Python/data_dir/guess.npy', 'rb') as f:
+        with open('../../FWI_Python/data_dir/guess.npy', 'rb') as f:
             self.model = np.float32(np.load(f))
 
         self.modelHist = np.c_[self.modelHist, self.model]
@@ -185,7 +185,7 @@ class MatmodelFWI(Matmod):
         plt.grid(False)
         plt.xlim([0, self.mesh.lenght])
         plt.ylim([0, self.mesh.depth])
-        plt.savefig('../FWI_Python/plots/design/design_layout.png')
+        plt.savefig('../../FWI_Python/plots/design/design_layout.png')
         plt.close(fig1)
 
     def plot_model(self, ID):
@@ -216,7 +216,7 @@ class MatmodelFWI(Matmod):
         plt.xlabel(' ')
         plt.ylabel(' ')
         plt.title(' ')
-        plt.savefig(f'../FWI_Python/plots/phi_{ID}.png')
+        plt.savefig(f'../../FWI_Python/plots/phi_{ID}.png')
         plt.close(fig1)
 
     def plot_realModel(self):
@@ -243,7 +243,7 @@ class MatmodelFWI(Matmod):
         plt.xlabel(' ')
         plt.ylabel(' ')
         plt.title(' ')
-        plt.savefig(f'../FWI_Python/plots/real_phi.png')
+        plt.savefig(f'../../FWI_Python/plots/real_phi.png')
         plt.close(fig1)
 
 
@@ -502,13 +502,13 @@ class MatmodelLS(Matmod):
 
     def read_RealModel(self):
 
-        with open('../FWI_Python/data_dir/real_model.npy', 'rb') as f:
+        with open('../../FWI_Python/data_dir/real_model.npy', 'rb') as f:
             self.realModel = np.float32(np.load(f))
         self.plot_realModel()
 
     def read_Guess(self):
 
-        with open('../FWI_Python/data_dir/guess.npy', 'rb') as f:
+        with open('../../FWI_Python/data_dir/guess.npy', 'rb') as f:
             self.model = np.float32(np.load(f))
 
         self.modelHist = np.c_[self.modelHist, self.model]
@@ -544,25 +544,41 @@ class MatmodelLS(Matmod):
 
     def plot_design(self, sources, receivers):
 
+        # TODO: Improve the accuracy of this plot and update other material models.
+
         Sx, Sy, Rx, Ry = [], [], [], []
 
         for node in range(0, self.mesh.nNodes):
             if node + 1 in sources:
-                Sx.append(self.mesh.mCoord[node, 0])
-                Sy.append(self.mesh.mCoord[node, 1])
+                Sx.append((self.mesh.mCoord[node, 0]/self.mesh.lenght)*self.mesh.nElementsL)
+                Sy.append((self.mesh.mCoord[node, 1]/self.mesh.depth)*self.mesh.nElementsD)
             if node + 1 in receivers:
-                Rx.append(self.mesh.mCoord[node, 0])
-                Ry.append(self.mesh.mCoord[node, 1])
+                Rx.append((self.mesh.mCoord[node, 0]/self.mesh.lenght)*self.mesh.nElementsL)
+                Ry.append((self.mesh.mCoord[node, 1]/self.mesh.depth)*self.mesh.nElementsD)
 
-        fig1 = plt.figure(figsize=(7, 7))
+        aux = np.zeros([self.mesh.nElements, 1])
+        axField = np.zeros([self.mesh.nElementsD, self.mesh.nElementsL])
+
+        for e in range(0, self.mesh.nElements):
+            aux[e, 0] = self.apply_property(e, dataGen=True)
+
+        for j in range(0, self.mesh.nElementsD):
+            for i in range(0, self.mesh.nElementsL):
+                axField[(self.mesh.nElementsD - 1) - j, i] = aux[i + j * self.mesh.nElementsL, 0]
+
+        fig1, ax = plt.subplots(figsize=(7, 7))
+        ax.imshow(axField, cmap='seismic')
+        ax.set_yticklabels([])
+        ax.set_xticklabels([])
+        plt.xlabel(' ')
+        plt.ylabel(' ')
+
         plt.scatter(Sx, Sy, color='k', marker='o')
-        plt.scatter(Rx, Ry, color='r', marker='x')
+        plt.scatter(Rx, Ry, color='k', marker='x')
         plt.title(' ')
         plt.grid(False)
-        #plt.axis('square')
-        plt.xlim([0, self.mesh.lenght])
-        plt.ylim([0, self.mesh.depth])
-        plt.savefig('../FWI_Python/plots/design/design_layout.png')
+
+        plt.savefig('../../FWI_Python/plots/design/design_layout.png')
         plt.close(fig1)
 
     def modSens(self, sens, kappa, c, regA, regB, regSens, normSens):
@@ -639,7 +655,7 @@ class MatmodelLS(Matmod):
         plt.xlabel(' ')
         plt.ylabel(' ')
         plt.title(' ')
-        plt.savefig(f'../FWI_Python/plots/phi_{ID}.png')
+        plt.savefig(f'../../FWI_Python/plots/phi_{ID}.png')
         plt.close(fig1)
 
     def plot_realModel(self):
@@ -676,7 +692,7 @@ class MatmodelLS(Matmod):
         plt.xlabel(' ')
         plt.ylabel(' ')
         plt.title(' ')
-        plt.savefig(f'../FWI_Python/plots/real_phi.png')
+        plt.savefig(f'../../FWI_Python/plots/real_phi.png')
         plt.close(fig1)
 
     def mount_problem(self, frame, diag_scale, dataGen):

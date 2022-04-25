@@ -71,7 +71,7 @@ def backTracking_LineS(mesh, stiff, frame, mass, force, dt, cost0, cF, matmod, s
         matmod.delta = deltaChange
     matmod.writeHist()
     if plotModel:
-        matmod.plot_model(ID=it + 1)  # LS - APPLY PROPERTY is SLOW!
+        matmod.plot_model(ID=it + 1)  # TODO LS - APPLY PROPERTY is SLOW!
     if plotSens:
         plot_field(mesh, sens, ncol=0, field_name="sensitivity", ID=it + 1)
 

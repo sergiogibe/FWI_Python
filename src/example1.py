@@ -37,8 +37,10 @@ from source import Source
 from receiver import Receiver
 sources, receivers = [] , []
 
-source = Source(0,0.3,2.7,mesh)
-sources.append(source.nodalAbs)
+source1 = Source(0,0.3,2.7,mesh)
+source2 = Source(0,0.9,2.7,mesh)
+sources.append(source1.nodalAbs)
+sources.append(source2.nodalAbs)
 sources = np.asarray(sources,dtype=np.int32)
 
 for i in range(15):
@@ -69,15 +71,17 @@ from mount import MountProblem
 problem = MountProblem(mesh, matmod, frame, dataGen=True, diag_scale=True)
 
 
-from timeSolver import solverEXP_CCompiled
+from timeSolver import solverEXP1shot_CCompiled
 print("Solving..")
 start = time.time()
-u = solverEXP_CCompiled(frame.stiff,problem.mass,force.force,pulse.deltaTime,sources)
+u1 = solverEXP1shot_CCompiled(frame.stiff,problem.mass,force.force,pulse.deltaTime,sources[0,],0)
+u2 = solverEXP1shot_CCompiled(frame.stiff,problem.mass,force.force,pulse.deltaTime,sources[1,],1)
 end = time.time()
 print(f"Elapsed time : {end - start} seconds            ")
 
+
 from plot import render_propagating
-render_propagating(mesh,u,size=10)
+render_propagating(mesh,u1.base+u2.base,size=10)
 
 
 

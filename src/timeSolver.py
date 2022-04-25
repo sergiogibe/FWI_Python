@@ -31,6 +31,36 @@ def solverEXP_CCompiled(K,M,f,dt,sourceList):
     return u
 
 
+def solverEXP1shot_CCompiled(K,M,f,dt,shotNode,shot):
+
+    #Useful parameters
+    steps = f.shape[1]
+    dof   = M.shape[0]
+
+    #Fields saved
+    u   = np.zeros([dof, steps],dtype=np.float32)
+
+    #Fields not saved
+    at0 = np.zeros([dof, 1],dtype=np.float32)
+    ut0 = np.zeros([dof, 1],dtype=np.float32)
+    vt0 = np.zeros([dof, 1],dtype=np.float32)
+
+    #Turn contiguous (precaution)
+    np.ascontiguousarray(M)
+
+    #Solution
+    for t in range(1, steps):
+
+        barK = K.dot((ut0 + dt * vt0 + 0.5 * dt * dt * at0))
+
+        at1 = Csolver.marchEXP1shot(f, M, barK,t, shotNode, shot)
+
+        #Updating and saving field:
+        ut0, vt0, at0, u = Csolver.field_updateEXP(ut0, vt0, at0, at1, u, t, dt)
+
+    return u
+
+
 def solverF_CCompiled(K,M,f,dt,sourceList,receiverList,data):
 
     #Useful parameters
@@ -56,6 +86,40 @@ def solverF_CCompiled(K,M,f,dt,sourceList,receiverList,data):
         barK = K.dot((ut0 + dt * vt0 + 0.5 * dt * dt * at0))
 
         at1, misfit, cost = Csolver.marchF(f, M, barK, ut0, data, misfit, t, cost, sourceList, receiverList)
+
+        #Updating and saving field:
+        ut0, vt0, at0, v = Csolver.field_updateF(ut0, vt0, at0, at1, v, t, dt)
+
+    return v, cost, misfit
+
+
+
+def solverF1shot_CCompiled(K,M,f,dt,shotNode,shot,receiverList,data):
+
+    #Useful parameters
+    steps = f.shape[1]
+    dof   = M.shape[0]
+    cost = 0
+
+    #Fields saved
+    v = np.ascontiguousarray(np.zeros([dof, steps],dtype=np.float32))
+    misfit = np.ascontiguousarray(np.zeros([len(receiverList),steps],dtype=np.float32))
+
+    #Fields not saved
+    at0 = np.ascontiguousarray(np.zeros([dof, 1],dtype=np.float32))
+    ut0 = np.ascontiguousarray(np.zeros([dof, 1],dtype=np.float32))
+    vt0 = np.ascontiguousarray(np.zeros([dof, 1],dtype=np.float32))
+
+    #Turn contiguous
+    np.ascontiguousarray(M)
+
+    #Solution
+    for t in range(1, steps):
+
+        barK = K.dot((ut0 + dt * vt0 + 0.5 * dt * dt * at0))
+
+        at1, misfit, cost = Csolver.marchF1shot(f, M, barK, ut0, np.ascontiguousarray(data[:,:,shot]), misfit, t,
+                                                cost, shotNode, shot, receiverList)
 
         #Updating and saving field:
         ut0, vt0, at0, v = Csolver.field_updateF(ut0, vt0, at0, at1, v, t, dt)

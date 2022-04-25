@@ -30,7 +30,7 @@ def plot_field(mesh,field,ncol,field_name,ID):
     plt.xlabel(' ')
     plt.ylabel(' ')
     plt.title(' ')
-    plt.savefig(f'../FWI_Python/plots/{field_name}_{ID}.png')
+    plt.savefig(f'../../FWI_Python/plots/{field_name}_{ID}.png')
     plt.close(fig1)
 
 
@@ -50,7 +50,7 @@ def plot_cost(cF,it,niter):
     plt.ylabel(' ')
     plt.title(' ')
     if it >= niter - 2:
-        plt.savefig('../FWI_Python/plots/costFunctional.png')
+        plt.savefig('../../FWI_Python/plots/costFunctional.png')
     plt.show(block=False)
     plt.pause(.3)
 
