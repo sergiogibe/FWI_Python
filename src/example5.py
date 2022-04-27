@@ -1,10 +1,10 @@
-print("Example 3 - Simple square inversion using LS.")
+print("Example 5 - Simple square inversion using multiple control functions.")
 import numpy as np
 import time
 from matplotlib import pyplot as plt
 from plot import *
 
-''' Example of inverting a simple square. '''
+''' Example of inverting a simple square using multiple controls. '''
 #   PROBLEM: Simple centered square.
 
 '''======================== PARAMETERS ================================'''
@@ -78,10 +78,10 @@ force = ExternalForce(sources,mesh.nNodes,pulse.pulse)
 '''---------------------------------------------------------------------'''
 
 from materialModel import *
-control = MatmodelLS(mesh, opt_config)
-control.set_velocities([lower_vel,upper_vel])
-control.square_dist()
-control.plot_design(sources, receivers)
+control_exp = MatmodelLS(mesh, opt_config)
+control_exp.set_velocities([lower_vel,upper_vel])
+control_exp.square_dist()
+control_exp.plot_design(sources, receivers)
 
 '''---------------------------------------------------------------------'''
 
@@ -92,7 +92,7 @@ frame = ElementFrame(mesh,sparse_mode=True)
 
 from timeSolver import *
 print("Generating synth data..")
-exp_problem = control.mount_problem(frame, diag_scale=True, dataGen=True)
+exp_problem = control_exp.mount_problem(frame, diag_scale=True, dataGen=True)
 u = np.zeros([mesh.nNodes,pulse.steps,sources.shape[0]],dtype=np.float32)
 for sh in range(0,sources.shape[0]):
     u[:,:,sh] = solverEXP1shot_CCompiled(frame.stiff,exp_problem,force.force,pulse.deltaTime,
@@ -109,7 +109,9 @@ for sh in range(0,sources.shape[0]):
 
 #INITIAL SETTINGS
 print('Prepering for inversion.. ')
-control.homoGuess()
+control_inv = MultiControl(mesh, opt_config)
+control_inv.set_velocities([1.5,2.5,3.5])
+control_inv.homoGuess()
 costFunction, costFunctionOld = 0, 1
 minSequence = []
 sensitivity = np.zeros([mesh.nNodes,1],dtype=np.float32)
@@ -123,7 +125,7 @@ for it in range(0,niter):
 
     # MOUNT THE PROBLEM
     print('MOUNT THE PROBLEM')
-    problem = control.mount_problem(frame, diag_scale=True, dataGen=False)
+    problem = control_inv.mount_problem(frame, diag_scale=True)
 
     # FOR LOOP SHOTS
     for shot in range(0,sources.shape[0]):
@@ -139,15 +141,16 @@ for it in range(0,niter):
         sensitivity += sens
 
     # SUM SHOT SOLUTIONS
-    print('MODIFY SENSITIVITY')
-    sensitivity = control.modSens(sensitivity, regf, normf, regA, regB, regSens=True, normSens=True)
+    print('MODIFY SENSITIVITY FIELDS')
+    sensitivity1 = control_inv.modSens(sensitivity, regf, normf, regA, regB, whichModel=1, regSens=True, normSens=True)
+    sensitivity2 = control_inv.modSens(sensitivity, regf, normf, regA, regB, whichModel=2, regSens=True, normSens=True)
 
     # UPDATE THE MODEL AND PLOT
-    print('UPDATE MODEL AND PLOT')
-    control.control_step(costFunction,costFunctionOld,it,boost=1.1)
-    control.update_reactdiff(sensitivity,difA,difB)
-    control.plot_model(ID=it+1)
-    control.writeHist()
+    print('UPDATE MODELS AND PLOT')
+    control_inv.control_step(costFunction, costFunctionOld, it, boost=1.1, manualReset=False)
+    control_inv.update_reactdiff(sensitivity1, sensitivity2, difA, difB)
+    control_inv.plot_model(ID=it + 1)
+    control_inv.writeHist()
 
     # LINE SEARCH STEP CONTROL
     print(f'COST FUNCTION = {costFunction}')
@@ -158,6 +161,8 @@ for it in range(0,niter):
     costFunction = 0
     sensitivity = np.zeros([mesh.nNodes,1],dtype=np.float32)
     print('-'*30)
+
+    #plot_control(mesh, control_inv.model, lsmin=-1, lsmax=1)
 
 plot_cost(minSequence,niter,niter)
 

@@ -1,3 +1,5 @@
+print('Deprecated example')
+exit()
 print("Example 1 - Simple square inversion.")
 import numpy as np
 import time

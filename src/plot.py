@@ -2,6 +2,9 @@ from matplotlib import pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.ticker import MaxNLocator
 import numpy as np
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator
+
 
 def plot_field(mesh,field,ncol,field_name,ID):
 
@@ -90,3 +93,37 @@ def render_propagating(mesh,field,size):
     ani = animation.ArtistAnimation(fig1,ims,interval=5,blit=True,repeat_delay=800)
 
     plt.show()
+
+
+def plot_control(mesh,model,lsmin,lsmax):
+
+    nx = mesh.nElementsL+1
+    ny = mesh.nElementsD+1
+
+    axField = np.zeros([nx,ny])
+    fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+
+    # Make data.
+    X = np.arange(1, mesh.nElementsL+2, 1)
+    Y = np.arange(1, mesh.nElementsD+2, 1)
+    X, Y = np.meshgrid(X, Y)
+
+    for j in range(0, ny):
+        for i in range(0, nx):
+            axField[ny - 1 - j, i] = model[i + j * ny, 0]
+
+    # Plot the surface.
+    surf = ax.plot_surface(X, Y, axField, cmap=cm.coolwarm,
+                           linewidth=0, antialiased=False)
+
+    # Customize the z axis.
+    ax.set_zlim(lsmin, lsmax)
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    # A StrMethodFormatter is used automatically
+    ax.zaxis.set_major_formatter('{x:.02f}')
+
+    # Add a color bar which maps values to colors.
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+
+    plt.show()
+

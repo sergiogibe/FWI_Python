@@ -1,11 +1,11 @@
-print("Example 3 - Simple square inversion using LS.")
+print("Example 7 - Double square inversion using MMLS.")
 import numpy as np
 import time
 from matplotlib import pyplot as plt
 from plot import *
 
-''' Example of inverting a simple square. '''
-#   PROBLEM: Simple centered square.
+''' Example of inverting a double square using MMLS. '''
+#   PROBLEM: Double centered square.
 
 '''======================== PARAMETERS ================================'''
 lenght = 2                          # Total lenght of the domain [km].
@@ -18,7 +18,7 @@ T = 2.6                             # Time of observation [s].
 dt = 0.002                          # Newmark time delta [s].
 dispF = 1.0                         # Ricker pulse's displacement.
 delta=0.03                          # Reaction-diffusion pseudo-time.
-niter=14                            # Total number of problem iterations.
+niter=50                            # Total number of problem iterations.
 diff=5*pow(10,-6)                   # Reaction-diffusion coefficient.
 upper_vel = 3.5                     # Highest medium velocity [km/s].
 lower_vel = 1.5                     # Lowest medium velocity [km/s].
@@ -78,10 +78,11 @@ force = ExternalForce(sources,mesh.nNodes,pulse.pulse)
 '''---------------------------------------------------------------------'''
 
 from materialModel import *
-control = MatmodelLS(mesh, opt_config)
-control.set_velocities([lower_vel,upper_vel])
-control.square_dist()
-control.plot_design(sources, receivers)
+control_exp = MatmodelMMLS(mesh, opt_config)
+control_exp.set_velocities([1.5,2.5,3.5])
+control_exp.square_dist(sideDiv=3,value=1.01,plt=False)
+control_exp.square_dist(sideDiv=6,value=2.01,plt=True)
+#control_exp.plot_design(sources, receivers)
 
 '''---------------------------------------------------------------------'''
 
@@ -92,7 +93,7 @@ frame = ElementFrame(mesh,sparse_mode=True)
 
 from timeSolver import *
 print("Generating synth data..")
-exp_problem = control.mount_problem(frame, diag_scale=True, dataGen=True)
+exp_problem = control_exp.mount_problem(frame, diag_scale=True, dataGen=True)
 u = np.zeros([mesh.nNodes,pulse.steps,sources.shape[0]],dtype=np.float32)
 for sh in range(0,sources.shape[0]):
     u[:,:,sh] = solverEXP1shot_CCompiled(frame.stiff,exp_problem,force.force,pulse.deltaTime,
@@ -109,7 +110,9 @@ for sh in range(0,sources.shape[0]):
 
 #INITIAL SETTINGS
 print('Prepering for inversion.. ')
-control.homoGuess()
+control_inv = MatmodelMMLS(mesh, opt_config)
+control_inv.set_velocities([1.5,2.5,3.5])
+control_inv.homoGuess()
 costFunction, costFunctionOld = 0, 1
 minSequence = []
 sensitivity = np.zeros([mesh.nNodes,1],dtype=np.float32)
@@ -123,7 +126,7 @@ for it in range(0,niter):
 
     # MOUNT THE PROBLEM
     print('MOUNT THE PROBLEM')
-    problem = control.mount_problem(frame, diag_scale=True, dataGen=False)
+    problem = control_inv.mount_problem(frame, diag_scale=True, dataGen=False)
 
     # FOR LOOP SHOTS
     for shot in range(0,sources.shape[0]):
@@ -140,14 +143,14 @@ for it in range(0,niter):
 
     # SUM SHOT SOLUTIONS
     print('MODIFY SENSITIVITY')
-    sensitivity = control.modSens(sensitivity, regf, normf, regA, regB, regSens=True, normSens=True)
+    sensitivity = control_inv.modSens(sensitivity, regf, normf, regA, regB, regSens=True, normSens=True)
 
     # UPDATE THE MODEL AND PLOT
     print('UPDATE MODEL AND PLOT')
-    control.control_step(costFunction,costFunctionOld,it,boost=1.1)
-    control.update_reactdiff(sensitivity,difA,difB)
-    control.plot_model(ID=it+1)
-    control.writeHist()
+    control_inv.control_step(costFunction, costFunctionOld, it, boost=1.1, manualReset=False)
+    control_inv.update_reactdiff(sensitivity, difA, difB)
+    control_inv.plot_model(ID=it + 1)
+    control_inv.writeHist()
 
     # LINE SEARCH STEP CONTROL
     print(f'COST FUNCTION = {costFunction}')
@@ -158,6 +161,8 @@ for it in range(0,niter):
     costFunction = 0
     sensitivity = np.zeros([mesh.nNodes,1],dtype=np.float32)
     print('-'*30)
+
+    #plot_control(mesh, control_inv.model, lsmin=0, lsmax=2)
 
 plot_cost(minSequence,niter,niter)
 

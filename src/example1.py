@@ -1,3 +1,6 @@
+print('Deprecated example')
+exit()
+
 print("Example 1 - Synthetic data generating.")
 
 ''' Simple example of generating synthetic data. '''

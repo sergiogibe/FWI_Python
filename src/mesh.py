@@ -2,7 +2,7 @@ import numpy as np
 
 class LinearMesh2D:
 
-    def __init__(self, envConfig, velocities):
+    def __init__(self, envConfig):
 
         self.nElementsL      = envConfig[0]
         self.nElementsD      = envConfig[1]
@@ -14,8 +14,6 @@ class LinearMesh2D:
 
         self.mCoord          = np.zeros([self.nNodes ,2],dtype=np.float32)
         self.Connect         = np.zeros([self.nElements ,4], dtype=int)
-
-        self.propSpeed = velocities
 
         auxD = self.depth /self.nElementsD
         auxL = self.lenght /self.nElementsL
