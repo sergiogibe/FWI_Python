@@ -29,6 +29,34 @@ def field_updateEXP(float[:,::1] ut0, float[:,::1] vt0, float[:,::1] at0, float[
 
     return result1, result2, result3, field
 
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def field_updateEXPPML(float[:,::1] ut0, float[:,::1] vt0, float[:,::1] at0, float[:,::1] at1, float[:,::1] field, int tt, float dt, float[::1] forcePML):
+
+    cdef Py_ssize_t dof = field.shape[0]
+    cdef Py_ssize_t steps = field.shape[1]
+    cdef Py_ssize_t n
+    cdef Py_ssize_t l
+    cdef Py_ssize_t t = tt
+
+    result1 = np.zeros((dof,1),dtype=DTYPE)
+    result2 = np.zeros((dof,1),dtype=DTYPE)
+    result3 = np.zeros((dof,1),dtype=DTYPE)
+    cdef float[:,::1] result_view1 = result1
+    cdef float[:,::1] result_view2 = result2
+    cdef float[:,::1] result_view3 = result3
+
+    for n in prange(dof,nogil=True):
+        at1[n,0] *= forcePML[n]
+        result_view1[n,0] = ut0[n,0] + dt*vt0[n,0] + dt*dt*0.5*at0[n,0]
+        result_view2[n,0] = vt0[n,0] + dt*0.5*(at0[n,0] + at1[n,0])
+        result_view3[n,0] = at1[n,0]
+
+        field[n,t] = result_view1[n,0]
+
+    return result1, result2, result3, field
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def field_updateF(float[:,::1] ut0, float[:,::1] vt0, float[:,::1] at0, float[:,::1] at1, float[:,::1] field, int tt, float dt):
@@ -129,6 +157,8 @@ def marchEXP1shot(float[:,:]f, float[:,::1]M, float[:,:]barK, int tt, int shotNo
         result_view[n,0] = (frc - barK[n,0]) / M[n,0]
 
     return result
+
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)

@@ -729,7 +729,7 @@ class MatmodelMMLS(Matmod):
     def __init__(self, meshObj, optConfig):
 
         super().__init__(meshObj, optConfig)
-        self.realModel = np.ones([self.mesh.nNodes, 1], dtype=np.float32) * 0.01
+        self.realModel = np.ones([self.mesh.nNodes, 1], dtype=np.float32)
         self.delta *= 1.5
 
         self.nM = 0
@@ -781,6 +781,13 @@ class MatmodelMMLS(Matmod):
 
         self.modelHist = np.c_[self.modelHist, self.model]
         self.plot_model(ID=0)
+
+    def strat_model(self):
+
+        for i in range(0,self.mesh.nNodes):
+            self.realModel[i,0] = i*(self.nM/self.mesh.nNodes)
+
+        self.plot_realModel()
 
     def strat_guess(self):
 

@@ -6,6 +6,31 @@ from matplotlib import cm
 from matplotlib.ticker import LinearLocator
 
 
+def plot_inDomain(target,mesh,field_name,ID):
+
+    nNodesL = mesh.nElementsL + 1
+    nNodesD = mesh.nElementsD + 1
+
+    aux_fd = np.zeros((mesh.nNodes, 1))
+    for i in range(0, target.shape[0]):
+        aux_fd[target[i] - 1, 0] = 1
+
+    axField = np.zeros([nNodesD, nNodesL])
+
+    for j in range(0, nNodesD):
+        for i in range(0, nNodesL):
+            axField[(nNodesD - 1) - j, i] = aux_fd[i + j * nNodesL, 0]
+
+    fig1, ax = plt.subplots(figsize=(7, 7))
+    ax.imshow(axField, cmap = 'binary')
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    plt.xlabel(' ')
+    plt.ylabel(' ')
+    plt.title(' ')
+    plt.savefig(f'../../FWI_Python/plots/{field_name}_{ID}.png')
+    plt.close(fig1)
+
 def plot_field(mesh,field,ncol,field_name,ID):
 
     # Helpful info: mesh  = meshObj

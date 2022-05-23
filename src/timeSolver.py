@@ -61,6 +61,36 @@ def solverEXP1shot_CCompiled(K,M,f,dt,shotNode,shot):
     return u
 
 
+def solverEXP1shotPML_CCompiled(K,M,f,dt,shotNode,shot,pmlObj):
+
+    #Useful parameters
+    steps = f.shape[1]
+    dof   = M.shape[0]
+
+    #Fields saved
+    u   = np.zeros([dof, steps],dtype=np.float32)
+
+    #Fields not saved
+    at0 = np.zeros([dof, 1],dtype=np.float32)
+    ut0 = np.zeros([dof, 1],dtype=np.float32)
+    vt0 = np.zeros([dof, 1],dtype=np.float32)
+
+    #Turn contiguous (precaution)
+    np.ascontiguousarray(M)
+
+    #Solution
+    for t in range(1, steps):
+
+        barK = K.dot((ut0 + dt * vt0 + 0.5 * dt * dt * at0))
+
+        at1 = Csolver.marchEXP1shot(f, M, barK,t, shotNode, shot)
+
+        #Updating and saving field:
+        ut0, vt0, at0, u = Csolver.field_updateEXPPML(ut0, vt0, at0, at1, u, t, dt, pmlObj.forcePML)
+
+    return u
+
+
 def solverF_CCompiled(K,M,f,dt,sourceList,receiverList,data):
 
     #Useful parameters

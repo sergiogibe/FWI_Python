@@ -1,27 +1,25 @@
-print("Example 6 - Double square inversion using multiple control functions.")
+print("Example 6 - Strat layers inversion using multiple control functions.")
 import numpy as np
 import time
 from matplotlib import pyplot as plt
 from plot import *
 
-''' Example of inverting a double square using multiple controls. '''
-#   PROBLEM: Double centered square.
+''' Example of inverting strat layers using multiple controls. '''
+#   PROBLEM: Strat layers.
 
 '''======================== PARAMETERS ================================'''
-lenght = 2                          # Total lenght of the domain [km].
+lenght = 4                          # Total lenght of the domain [km].
 depth  = 2                          # Total depth of the domain [km].
-el = 100                            # Number of elements lenght.
-ed = 100                            # Number of elements depth.
+el = 120                            # Number of elements lenght.
+ed = 60                             # Number of elements depth.
 I = 1                               # Pulse intensity.
 freq = 2                            # Pulse frequency [hz].
-T = 2.6                             # Time of observation [s].
+T = 4.2                             # Time of observation [s].
 dt = 0.002                          # Newmark time delta [s].
 dispF = 1.0                         # Ricker pulse's displacement.
 delta=0.03                          # Reaction-diffusion pseudo-time.
 niter=50                            # Total number of problem iterations.
 diff=5*pow(10,-6)                   # Reaction-diffusion coefficient.
-upper_vel = 3.5                     # Highest medium velocity [km/s].
-lower_vel = 1.5                     # Lowest medium velocity [km/s].
 normf = 0.1                         # Sensitivity normalizing factor.
 regf  = 0.0008                      # Sensitivity regularization factor.
 '''---------------------------------------------------------------------'''
@@ -37,14 +35,9 @@ mesh = LinearMesh2D(env_config)
 
 from source import Source
 sources = []
-source1 = Source(0,0.05,0.05,mesh)
-source2 = Source(0,0.05,1.95,mesh)
-source3 = Source(0,1.95,0.05,mesh)
-source4 = Source(0,1.95,1.95,mesh)
-sources.append(source1.nodalAbs)
-sources.append(source2.nodalAbs)
-sources.append(source3.nodalAbs)
-sources.append(source4.nodalAbs)
+for i in range(1,5):
+    source = Source(0,i*0.8,1.95,mesh)
+    sources.append(source.nodalAbs)
 sources.sort()
 sources = np.asarray(sources,dtype=np.int32) #Nodal positions (starts with 1 !!)
 
@@ -52,15 +45,9 @@ sources = np.asarray(sources,dtype=np.int32) #Nodal positions (starts with 1 !!)
 
 from receiver import Receiver
 receivers = []
-for i in range(15):
-    receiver1 = Receiver(0, 0.05, 0.05 + (i * 0.13), mesh)
-    receiver2 = Receiver(0, 1.95, 0.05 + (i * 0.13), mesh)
-    receiver3 = Receiver(0, 0.05 + (i * 0.13), 0.05, mesh)
-    receiver4 = Receiver(0, 0.05 + (i * 0.13), 1.95, mesh)
-    receivers.append(receiver1.nodalAbs)
-    receivers.append(receiver2.nodalAbs)
-    receivers.append(receiver3.nodalAbs)
-    receivers.append(receiver4.nodalAbs)
+for i in range(1,16):
+    receiver = Receiver(0,0.25*i,1.90,mesh)
+    receivers.append(receiver.nodalAbs)
 receivers = list(dict.fromkeys(receivers))
 receivers.sort()
 receivers = np.asarray(receivers,dtype=np.int32) #Nodal positions (starts with 1 !!)
@@ -80,9 +67,8 @@ force = ExternalForce(sources,mesh.nNodes,pulse.pulse)
 from materialModel import *
 control_exp = MatmodelMMLS(mesh, opt_config)
 control_exp.set_velocities([1.5,2.5,3.5])
-control_exp.square_dist(sideDiv=2,value=1.01,plt=False)
-control_exp.square_dist(sideDiv=4,value=2.01,plt=True)
-#control_exp.plot_design(sources, receivers)
+control_exp.strat_model()
+control_exp.plot_design(sources, receivers)
 
 '''---------------------------------------------------------------------'''
 

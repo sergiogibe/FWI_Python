@@ -33,20 +33,28 @@ opt_config = [delta,niter,diff]
 from mesh import LinearMesh2D
 mesh = LinearMesh2D(env_config)
 
+from pml import PML
+pmlObj = PML(mesh,thickness=20,atten=0.1)
+pmlObj.plot_PML()
+
 '''---------------------------------------------------------------------'''
 
 from source import Source
 sources = []
-source1 = Source(0,0.05,0.05,mesh)
-source2 = Source(0,0.05,1.95,mesh)
-source3 = Source(0,1.95,0.05,mesh)
-source4 = Source(0,1.95,1.95,mesh)
+# source1 = Source(0,0.25,0.25,mesh)
+# source2 = Source(0,0.25,1.75,mesh)
+# source3 = Source(0,1.75,0.25,mesh)
+# source4 = Source(0,1.75,1.75,mesh)
+# sources.append(source1.nodalAbs)
+# sources.append(source2.nodalAbs)
+# sources.append(source3.nodalAbs)
+# sources.append(source4.nodalAbs)
+source1 = Source(0,1.00,1.00,mesh)
 sources.append(source1.nodalAbs)
-sources.append(source2.nodalAbs)
-sources.append(source3.nodalAbs)
-sources.append(source4.nodalAbs)
-sources.sort()
+#sources.sort()
 sources = np.asarray(sources,dtype=np.int32) #Nodal positions (starts with 1 !!)
+
+#plot_inDomain(sources,mesh,"sources_check","0")
 
 '''---------------------------------------------------------------------'''
 
@@ -95,71 +103,71 @@ print("Generating synth data..")
 exp_problem = control.mount_problem(frame, diag_scale=True, dataGen=True)
 u = np.zeros([mesh.nNodes,pulse.steps,sources.shape[0]],dtype=np.float32)
 for sh in range(0,sources.shape[0]):
-    u[:,:,sh] = solverEXP1shot_CCompiled(frame.stiff,exp_problem,force.force,pulse.deltaTime,
-                                         sources[sh],sh).base
+    u[:,:,sh] = solverEXP1shotPML_CCompiled(frame.stiff,exp_problem,force.force,pulse.deltaTime,
+                                         sources[sh],sh,pmlObj).base
 
 exp = np.float32(np.zeros([receivers.shape[0],pulse.steps,sources.shape[0]]))
 for sh in range(0,sources.shape[0]):
     for rc in range(0,receivers.shape[0]):
         exp[rc,:,sh] = u[receivers[rc]-1,:,sh]
 
-#render_propagating(mesh,u[:,:,0],size=10)
+render_propagating(mesh,u[:,:,0],size=10)
 
 '''---------------------------------------------------------------------'''
 
-#INITIAL SETTINGS
-print('Prepering for inversion.. ')
-control.homoGuess()
-costFunction, costFunctionOld = 0, 1
-minSequence = []
-sensitivity = np.zeros([mesh.nNodes,1],dtype=np.float32)
-regA, regB = frame.getConsistent(tau=1)
-difA, difB = frame.getConsistent(tau=diff)
-print('-'*30)
-
-# FOR LOOP GLOBAL ITER
-for it in range(0,niter):
-    print(f'Iteration {it+1}.. ')
-
-    # MOUNT THE PROBLEM
-    print('MOUNT THE PROBLEM')
-    problem = control.mount_problem(frame, diag_scale=True, dataGen=False)
-
-    # FOR LOOP SHOTS
-    for shot in range(0,sources.shape[0]):
-        # FORWARD PROBLEM
-        print(f'FORWARD PROBLEM - SHOT {shot+1}')
-        v, cost, misfit = solverF1shot_CCompiled(frame.stiff, problem, force.force, dt,
-                                                  sources[shot], shot, receivers, exp)
-        # ADJOINT PROBLEM
-        print(f'ADJOINT PROBLEM - SHOT {shot+1}')
-        sens = solverS_CCompiled(frame.stiff, problem, misfit, dt, receivers, v)
-
-        costFunction += cost
-        sensitivity += sens
-
-    # SUM SHOT SOLUTIONS
-    print('MODIFY SENSITIVITY')
-    sensitivity = control.modSens(sensitivity, regf, normf, regA, regB, regSens=True, normSens=True)
-
-    # UPDATE THE MODEL AND PLOT
-    print('UPDATE MODEL AND PLOT')
-    control.control_step(costFunction,costFunctionOld,it,boost=1.1)
-    control.update_reactdiff(sensitivity,difA,difB)
-    control.plot_model(ID=it+1)
-    control.writeHist()
-
-    # LINE SEARCH STEP CONTROL
-    print(f'COST FUNCTION = {costFunction}')
-    minSequence.append(costFunction)
-
-    # RESET INTERNAL VARIABLES
-    costFunctionOld = costFunction
-    costFunction = 0
-    sensitivity = np.zeros([mesh.nNodes,1],dtype=np.float32)
-    print('-'*30)
-
-plot_cost(minSequence,niter,niter)
+# #INITIAL SETTINGS
+# print('Prepering for inversion.. ')
+# control.homoGuess()
+# costFunction, costFunctionOld = 0, 1
+# minSequence = []
+# sensitivity = np.zeros([mesh.nNodes,1],dtype=np.float32)
+# regA, regB = frame.getConsistent(tau=1)
+# difA, difB = frame.getConsistent(tau=diff)
+# print('-'*30)
+#
+# # FOR LOOP GLOBAL ITER
+# for it in range(0,niter):
+#     print(f'Iteration {it+1}.. ')
+#
+#     # MOUNT THE PROBLEM
+#     print('MOUNT THE PROBLEM')
+#     problem = control.mount_problem(frame, diag_scale=True, dataGen=False)
+#
+#     # FOR LOOP SHOTS
+#     for shot in range(0,sources.shape[0]):
+#         # FORWARD PROBLEM
+#         print(f'FORWARD PROBLEM - SHOT {shot+1}')
+#         v, cost, misfit = solverF1shot_CCompiled(frame.stiff, problem, force.force, dt,
+#                                                   sources[shot], shot, receivers, exp)
+#         # ADJOINT PROBLEM
+#         print(f'ADJOINT PROBLEM - SHOT {shot+1}')
+#         sens = solverS_CCompiled(frame.stiff, problem, misfit, dt, receivers, v)
+#
+#         costFunction += cost
+#         sensitivity += sens
+#
+#     # SUM SHOT SOLUTIONS
+#     print('MODIFY SENSITIVITY')
+#     sensitivity = control.modSens(sensitivity, regf, normf, regA, regB, regSens=True, normSens=True)
+#
+#     # UPDATE THE MODEL AND PLOT
+#     print('UPDATE MODEL AND PLOT')
+#     control.control_step(costFunction,costFunctionOld,it,boost=1.1,manualReset=False)
+#     control.update_reactdiff(sensitivity,difA,difB)
+#     control.plot_model(ID=it+1)
+#     control.writeHist()
+#
+#     # LINE SEARCH STEP CONTROL
+#     print(f'COST FUNCTION = {costFunction}')
+#     minSequence.append(costFunction)
+#
+#     # RESET INTERNAL VARIABLES
+#     costFunctionOld = costFunction
+#     costFunction = 0
+#     sensitivity = np.zeros([mesh.nNodes,1],dtype=np.float32)
+#     print('-'*30)
+#
+# plot_cost(minSequence,niter,niter)
 
 '''---------------------------------------------------------------------'''
 
