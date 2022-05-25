@@ -34,7 +34,7 @@ from mesh import LinearMesh2D
 mesh = LinearMesh2D(env_config)
 
 from pml import PML
-pmlObj = PML(mesh,thickness=20,atten=0.1)
+pmlObj = PML(mesh,thickness=20,atten=2)
 pmlObj.plot_PML()
 
 '''---------------------------------------------------------------------'''
@@ -78,7 +78,7 @@ receivers = np.asarray(receivers,dtype=np.int32) #Nodal positions (starts with 1
 from rickerPulse import RickerPulse
 pulse = RickerPulse(pulse_config)
 
-'''---------------------------------------------------------------------'''
+'''-------TOGETHER-----------------------------------'''
 
 from externalForce import ExternalForce
 force = ExternalForce(sources,mesh.nNodes,pulse.pulse)
@@ -89,7 +89,20 @@ from materialModel import *
 control = MatmodelLS(mesh, opt_config)
 control.set_velocities([lower_vel,upper_vel])
 control.square_dist()
-control.plot_design(sources, receivers)
+#control.plot_design(sources, receivers)
+
+colors = [
+    (0.5, 0.0, 0.0),  # 'red',
+    (1.0, 0.6, 0.0),  # 'orange',
+    (0.0, 0.5, 1.0),  # 'cyan',
+    (0.0, 0.0, 0.5),  # 'blue',
+    (0.0, 0.0, 0.0)  # 'black'
+]
+vp = np.zeros((101,101))
+for j in range(101):
+    for i in range(101):
+        vp[j,i]=control.realModel[i+j*101]
+plot_contour(2,vp,(-1,1),levels=[-1.0,0.0,1.0],colors=colors,fill=True)
 
 '''---------------------------------------------------------------------'''
 

@@ -6,6 +6,51 @@ from matplotlib import cm
 from matplotlib.ticker import LinearLocator
 
 
+def plot_contour(fig_number, vp: np.array, vp_range=None, fill=False, extent=None,
+    cmap='jet_r', levels=None, colors=None, ** plot_kwargs):
+
+    plt.figure(fig_number, dpi=300)
+
+    if vp_range is None:
+        vp_range = (None, None)
+
+    if colors is not None:
+        cmap = None
+
+    if levels is None:
+        levels = np.linspace(np.min(vp), np.max(vp), 5)
+
+    if extent is None:
+        extent = (1000.0, 1000.0)
+
+    extent = np.array(extent) / 1000.0
+
+    if fill:
+        func = plt.contourf
+    else:
+        func = plt.contour
+
+    plot = func(
+        vp.T,
+        cmap=cmap,
+        extent=(0.0, extent[0], 0.0, extent[1]),
+        vmin=vp_range[0], vmax=vp_range[1],
+        colors=colors,
+        levels=levels,
+        **plot_kwargs
+    )
+
+    plt.xlim(0.0, extent[0])
+    plt.ylim(extent[1], 0.0)
+    plt.xlabel('X (km)')
+    plt.ylabel('Z (km)')
+
+    plt.gca().set_aspect('equal')
+    plt.savefig(f'../../FWI_Python/plots/plot_contour.png')
+
+    return
+
+
 def plot_inDomain(target,mesh,field_name,ID):
 
     nNodesL = mesh.nElementsL + 1

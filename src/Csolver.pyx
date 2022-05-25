@@ -48,9 +48,8 @@ def field_updateEXPPML(float[:,::1] ut0, float[:,::1] vt0, float[:,::1] at0, flo
     cdef float[:,::1] result_view3 = result3
 
     for n in prange(dof,nogil=True):
-        at1[n,0] *= forcePML[n]
         result_view1[n,0] = ut0[n,0] + dt*vt0[n,0] + dt*dt*0.5*at0[n,0]
-        result_view2[n,0] = vt0[n,0] + dt*0.5*(at0[n,0] + at1[n,0])
+        result_view2[n,0] = (vt0[n,0] + dt*0.5*(at0[n,0] + at1[n,0]))*forcePML[n]
         result_view3[n,0] = at1[n,0]
 
         field[n,t] = result_view1[n,0]

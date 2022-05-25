@@ -42,7 +42,7 @@ class PML:
 
             # GET FORCE PML WITH ATTENUATION
             for i in range(self.pml.shape[0]):
-                self.forcePML[self.pml[i]-1] = self.atten*(1 - 1/pow(ie,0.8))
+                self.forcePML[self.pml[i]-1] = 1 - pow((self.e-ie)/self.e,self.atten) #pow(self.atten,(self.e-ie)*0.1)
 
 
     def plot_PML(self):
