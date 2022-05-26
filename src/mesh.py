@@ -6,7 +6,7 @@ class LinearMesh2D:
 
         self.nElementsL      = envConfig[0]
         self.nElementsD      = envConfig[1]
-        self.lenght          = envConfig[2]
+        self.length          = envConfig[2]
         self.depth           = envConfig[3]
 
         self.nNodes          = (envConfig[0] +1) * (envConfig[1] +1)
@@ -16,7 +16,7 @@ class LinearMesh2D:
         self.Connect         = np.zeros([self.nElements ,4], dtype=int)
 
         auxD = self.depth /self.nElementsD
-        auxL = self.lenght /self.nElementsL
+        auxL = self.length /self.nElementsL
 
         for i in range(0 ,self.nElementsL +1):
             self.mCoord[i ,0] = auxL *i

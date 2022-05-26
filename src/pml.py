@@ -45,8 +45,6 @@ class PML:
                 self.forcePML[self.pml[i]-1] = 1 - pow((self.e-ie)/self.e,self.atten) #pow(self.atten,(self.e-ie)*0.1)
 
 
-    def plot_PML(self):
-        #plot_inDomain(self.pml, self.mesh, "pml_check", "0")
         nNodesL = self.mesh.nElementsL + 1
         nNodesD = self.mesh.nElementsD + 1
 

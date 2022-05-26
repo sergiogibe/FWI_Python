@@ -34,7 +34,7 @@ from mesh import LinearMesh2D
 mesh = LinearMesh2D(env_config)
 
 from pml import PML
-pmlObj = PML(mesh,thickness=20,atten=2)
+pmlObj = PML(mesh,thickness=0,atten=2)
 pmlObj.plot_PML()
 
 '''---------------------------------------------------------------------'''
@@ -49,12 +49,13 @@ sources = []
 # sources.append(source2.nodalAbs)
 # sources.append(source3.nodalAbs)
 # sources.append(source4.nodalAbs)
-source1 = Source(0,1.00,1.00,mesh)
+source1 = Source(0,0.60,0.60,mesh)
 sources.append(source1.nodalAbs)
 #sources.sort()
 sources = np.asarray(sources,dtype=np.int32) #Nodal positions (starts with 1 !!)
 
 #plot_inDomain(sources,mesh,"sources_check","0")
+
 
 '''---------------------------------------------------------------------'''
 
@@ -78,7 +79,7 @@ receivers = np.asarray(receivers,dtype=np.int32) #Nodal positions (starts with 1
 from rickerPulse import RickerPulse
 pulse = RickerPulse(pulse_config)
 
-'''-------TOGETHER-----------------------------------'''
+'''---------------------------------------------------------------------'''
 
 from externalForce import ExternalForce
 force = ExternalForce(sources,mesh.nNodes,pulse.pulse)
@@ -91,18 +92,18 @@ control.set_velocities([lower_vel,upper_vel])
 control.square_dist()
 #control.plot_design(sources, receivers)
 
-colors = [
-    (0.5, 0.0, 0.0),  # 'red',
-    (1.0, 0.6, 0.0),  # 'orange',
-    (0.0, 0.5, 1.0),  # 'cyan',
-    (0.0, 0.0, 0.5),  # 'blue',
-    (0.0, 0.0, 0.0)  # 'black'
-]
-vp = np.zeros((101,101))
-for j in range(101):
-    for i in range(101):
-        vp[j,i]=control.realModel[i+j*101]
-plot_contour(2,vp,(-1,1),levels=[-1.0,0.0,1.0],colors=colors,fill=True)
+# colors = [
+#     (0.5, 0.0, 0.0),  # 'red',
+#     (1.0, 0.6, 0.0),  # 'orange',
+#     (0.0, 0.5, 1.0),  # 'cyan',
+#     (0.0, 0.0, 0.5),  # 'blue',
+#     (0.0, 0.0, 0.0)  # 'black'
+# ]
+# vp = np.zeros((101,101))
+# for j in range(101):
+#     for i in range(101):
+#         vp[j,i]=control.realModel[i+j*101]
+# plot_contour(2,vp,(-1,1),levels=[-1.0,0.0,1.0],colors=colors,fill=True)
 
 '''---------------------------------------------------------------------'''
 

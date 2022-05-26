@@ -581,10 +581,10 @@ class MatmodelLS(Matmod):
 
         for node in range(0, self.mesh.nNodes):
             if node + 1 in sources:
-                Sx.append((self.mesh.mCoord[node, 0]/self.mesh.lenght)*self.mesh.nElementsL)
+                Sx.append((self.mesh.mCoord[node, 0]/self.mesh.length)*self.mesh.nElementsL)
                 Sy.append((self.mesh.mCoord[node, 1]/self.mesh.depth)*self.mesh.nElementsD)
             if node + 1 in receivers:
-                Rx.append((self.mesh.mCoord[node, 0]/self.mesh.lenght)*self.mesh.nElementsL)
+                Rx.append((self.mesh.mCoord[node, 0]/self.mesh.length)*self.mesh.nElementsL)
                 Ry.append((self.mesh.mCoord[node, 1]/self.mesh.depth)*self.mesh.nElementsD)
 
         aux = np.zeros([self.mesh.nElements, 1])

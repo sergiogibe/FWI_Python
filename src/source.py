@@ -13,7 +13,7 @@ class Source:
         self.active = active
 
         #Mesh position
-        side_ratio = self.x / mesh.lenght
+        side_ratio = self.x / mesh.length
         if side_ratio > 1.0:
             side_ratio = 1.0
         if side_ratio < 0.0:
