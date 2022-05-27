@@ -68,7 +68,7 @@ class ElementFrame:
     def getConsistent(self,tau):
 
         #Helpful info: tau = diffusion coefficient
-        #              (in case of tau = 0 -> get matrices only for sensitivity regularization)
+        #              (in case of tau = 1 -> get matrices only for sensitivity regularization)
 
         stiff = np.zeros([self.mesh.nNodes, self.mesh.nNodes],dtype=np.float32)
         damp  = np.zeros([self.mesh.nNodes, self.mesh.nNodes],dtype=np.float32)

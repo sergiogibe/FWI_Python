@@ -6,8 +6,8 @@ from matplotlib import cm
 from matplotlib.ticker import LinearLocator
 
 
-def plot_contour(fig_number, vp: np.array, vp_range=None, fill=False, extent=None,
-    cmap='jet_r', levels=None, colors=None, ** plot_kwargs):
+def plot_contour(fig_number, name, vp: np.array, vp_range=None, fill=False, extent=None,
+    cmap='jet_r', levels=None, colors=None, save=None, ** plot_kwargs):
 
     plt.figure(fig_number, dpi=300)
 
@@ -23,7 +23,7 @@ def plot_contour(fig_number, vp: np.array, vp_range=None, fill=False, extent=Non
     if extent is None:
         extent = (1000.0, 1000.0)
 
-    extent = np.array(extent) / 1000.0
+    extent = np.array(extent)
 
     if fill:
         func = plt.contourf
@@ -46,7 +46,9 @@ def plot_contour(fig_number, vp: np.array, vp_range=None, fill=False, extent=Non
     plt.ylabel('Z (km)')
 
     plt.gca().set_aspect('equal')
-    plt.savefig(f'../../FWI_Python/plots/plot_contour.png')
+    if save:
+        plt.savefig(f'../../FWI_Python/plots/{name}.png')
+    plt.close()
 
     return
 

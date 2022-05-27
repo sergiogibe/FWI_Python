@@ -61,5 +61,5 @@ class PML:
         plt.xlabel(' ')
         plt.ylabel(' ')
         plt.title(' ')
-        plt.savefig(f'../../FWI_Python/plots/check_PML_0.png')
+        plt.savefig(f'../../FWI_Python/plots/PML_Layout.png')
         plt.close(fig1)
