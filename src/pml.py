@@ -50,16 +50,19 @@ class PML:
 
         axField = np.zeros([nNodesD, nNodesL])
 
-        for j in range(0, nNodesD):
-            for i in range(0, nNodesL):
+        for j in range(nNodesD):
+            for i in range(nNodesL):
                 axField[(nNodesD - 1) - j, i] = self.forcePML[i + j * nNodesL]
 
         fig1, ax = plt.subplots(figsize=(7, 7))
-        ax.imshow(axField, cmap='binary')
+        ax.imshow(np.transpose(axField), cmap='binary_r')
         ax.set_yticklabels([])
         ax.set_xticklabels([])
-        plt.xlabel(' ')
-        plt.ylabel(' ')
-        plt.title(' ')
+        #plt.xlim(0.0, self.mesh.length)
+        #plt.ylim(self.mesh.depth, 0.0)
+        plt.xlabel('X (km)')
+        plt.ylabel('Z (km)')
+        plt.gca().set_aspect('equal')
+
         plt.savefig(f'../../FWI_Python/plots/PML_Layout.png')
         plt.close(fig1)

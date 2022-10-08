@@ -7,7 +7,7 @@ from matplotlib.ticker import LinearLocator
 
 
 def plot_contour(fig_number, name, vp: np.array, vp_range=None, fill=False, extent=None,
-    cmap='jet_r', levels=None, colors=None, save=None, ** plot_kwargs):
+    cmap='jet_r', levels=None, colors=None, plotSR: list=None, save=None, ** plot_kwargs):
 
     plt.figure(fig_number, dpi=300)
 
@@ -31,7 +31,7 @@ def plot_contour(fig_number, name, vp: np.array, vp_range=None, fill=False, exte
         func = plt.contour
 
     plot = func(
-        vp.T,
+        vp,
         cmap=cmap,
         extent=(0.0, extent[0], 0.0, extent[1]),
         vmin=vp_range[0], vmax=vp_range[1],
@@ -45,6 +45,18 @@ def plot_contour(fig_number, name, vp: np.array, vp_range=None, fill=False, exte
     plt.xlabel('X (km)')
     plt.ylabel('Z (km)')
 
+    if plotSR is not None:
+        s = np.zeros((len(plotSR[0]), 2))
+        r = np.zeros((len(plotSR[1]), 2))
+        for source in range (len(plotSR[0])):
+            for i in range(2):
+                s[source,i] = plotSR[0][source][i]
+        for receiver in range (len(plotSR[1])):
+            for i in range(2):
+                r[receiver,i] = plotSR[1][receiver][i]
+        plt.scatter(s[:,0], s[:,1], color=(0.0, 0.8, 1.0), marker='o', s=20)
+        plt.scatter(r[:,0], r[:,1], color='cyan', marker='x', s=14)
+
     plt.gca().set_aspect('equal')
     if save:
         plt.savefig(f'../../FWI_Python/plots/{name}.png')
@@ -53,7 +65,7 @@ def plot_contour(fig_number, name, vp: np.array, vp_range=None, fill=False, exte
     return
 
 
-def plot_inDomain(target,mesh,field_name,ID):
+def plot_inDomain(target: np.array, mesh: object, name: str):
 
     nNodesL = mesh.nElementsL + 1
     nNodesD = mesh.nElementsD + 1
@@ -69,14 +81,15 @@ def plot_inDomain(target,mesh,field_name,ID):
             axField[(nNodesD - 1) - j, i] = aux_fd[i + j * nNodesL, 0]
 
     fig1, ax = plt.subplots(figsize=(7, 7))
-    ax.imshow(axField, cmap = 'binary')
+    ax.imshow(np.flip(axField,axis=0), cmap = 'binary')
     ax.set_yticklabels([])
     ax.set_xticklabels([])
     plt.xlabel(' ')
     plt.ylabel(' ')
     plt.title(' ')
-    plt.savefig(f'../../FWI_Python/plots/{field_name}_{ID}.png')
+    plt.savefig(f'../../FWI_Python/plots/{name}.png')
     plt.close(fig1)
+
 
 def plot_field(mesh,field,ncol,field_name,ID):
 
@@ -109,30 +122,28 @@ def plot_field(mesh,field,ncol,field_name,ID):
     plt.close(fig1)
 
 
-def plot_cost(cF,it,niter):
+def plot_f(f: list):
 
-    x = np.linspace(1, len(cF), len(cF), dtype=int)
-    y = np.zeros([len(cF), 1])
-    for i in range(0, len(cF)):
-        y[i,0] = cF[i]
-    fig1 = plt.figure(figsize=(7, 7))
+    x = np.linspace(1, len(f), len(f), dtype=int)
+    #y = np.zeros([len(f)])
+    #for i in range(len(f)):
+        #y[i] = f[i]
+
+    fig1 = plt.figure(dpi=300)
     ax = fig1.gca()
-    plt.plot(x, y, color='b', marker='o', label=' ')
+    plt.plot(x, f, color='b', marker='o', label=' ')
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     plt.draw()
     plt.grid(True)
-    plt.xlabel(' ')
-    plt.ylabel(' ')
-    plt.title(' ')
-    if it >= niter - 2:
-        plt.savefig('../../FWI_Python/plots/costFunctional.png')
-    plt.show(block=False)
-    plt.pause(.3)
-
-    return fig1
+    plt.ylabel('Objective Function')
+    plt.xlabel('Iteration')
+    plt.xlim(1, len(f)+1)
+    plt.ylim(0.0, 1.1*max(f))
+    plt.savefig('../../FWI_Python/plots/objFunction.png')
 
 
-def render_propagating(mesh,field,size):
+
+def render_propagating(mesh: object, field, size):
 
     #Helpful info: mesh  = meshObj
     #              field = p x t
@@ -159,7 +170,7 @@ def render_propagating(mesh,field,size):
                 for i in range(0, mesh.nElementsL):
                     axField[(mesh.nElementsD - 1) - j, i] = aux[i + j * mesh.nElementsL, 0]
 
-            im = ax.imshow(axField, cmap='binary', animated=True)
+            im = ax.imshow(np.flip(axField,axis=0), cmap='binary', animated=True)
             ims.append([im])
 
     ani = animation.ArtistAnimation(fig1,ims,interval=5,blit=True,repeat_delay=800)

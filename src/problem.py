@@ -23,8 +23,8 @@ class Problem:
         self.mesh: object = LinearMesh2D([el,ed,length,depth])
 
         # MAKE SOURCES AND RECEIVERS
-        self.sources   = nodalPos(sourcesPos, self.mesh)
-        self.receivers = nodalPos(receiversPos, self.mesh)
+        self.sources:   np.array = nodalPos(sourcesPos, self.mesh)
+        self.receivers: np.array = nodalPos(receiversPos, self.mesh)
 
         # APPLY ABSORBING CONDITIONS
         if ABC is None:
@@ -37,7 +37,7 @@ class Problem:
         self.force: object = ExternalForce(self.sources, self.mesh.nNodes, self.pulse.pulse)
 
         # GET FINITE ELEMENT STIFFNESS FRAME
-        self.frame: object = ElementFrame(self.mesh, sparse_mode=True)
+        self.frame: object = ElementFrame(self.mesh)
 
         # SET MATTERIAL MODEL
         self.materialModel: object = materialModel

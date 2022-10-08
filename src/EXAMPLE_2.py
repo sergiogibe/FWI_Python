@@ -1,5 +1,6 @@
 from plot import *
 from levelSet import LevelSet
+from MMlevelSet import MMLevelSet
 from problem import Problem
 from reactionDiffusion import RD
 from utilities import *
@@ -20,13 +21,13 @@ from utilities import *
                                                                           '''
 '''======================================================================='''
 
-print("\nExample 1 - EXPERIMENTAL PROBLEM (SINGLE CENTERED SQUARE - LS).\n")
+print("\nExample 1 - EXPERIMENTAL PROBLEM (SINGLE CENTERED SQUARE - MMLS).\n")
 
 print("Creating model")
-realModel = LevelSet(el=100,ed=100,
-                     length=2.00, depth=2.00,
-                     velocities=[1.0,3.0]
-                     )
+realModel = MMLevelSet(el=100,ed=100,
+                       length=2.00, depth=2.00,
+                       velocities=[3.5,2.0,1.0]   # HIGH VELOCITIES FIRST
+                       )
 sources   = [(0.20,0.20),(1.00,0.20),(1.80,0.20)]
 receivers = [(0.20+0.07*i,0.30) for i in range(24)]
 
@@ -38,7 +39,8 @@ realProblem = Problem(el=100,ed=100,length=2.0,depth=2.0,
                       ABC=(0,2),
                       saveResponse=True
                       )
-make_inclusions([(1.2,1.6,0.8,1.0)],realProblem.mesh,realModel.control,value=0.01)
+make_inclusions([(0.8,1.7,0.6,1.35)],realProblem.mesh,realModel.control,value=0.40)
+make_inclusions([(1.0,1.5,0.8,1.15)],realProblem.mesh,realModel.control,value=0.80)
 realModel.plot("plotDesign_TEST", plotSR=[sources,receivers])
 realProblem.solve()
 
@@ -48,10 +50,10 @@ rd = RD(tau=5*pow(10,-6),
         frame=realProblem.frame
         )
 
-model = LevelSet(el=100,ed=100,
-                 length=2.00, depth=2.00,
-                 velocities=[1.0,3.0]
-                 )
+model = MMLevelSet(el=100,ed=100,
+                   length=2.00, depth=2.00,
+                   velocities=[3.5,2.0,1.0]
+                   )
 
 invProblem = Problem(el=100,ed=100,length=2.0,depth=2.0,
                      I=1.0,freq=2.0,T=2.6,dt=0.002,
@@ -67,7 +69,7 @@ for it in range(50):
     fobj.append(invProblem.obj)
 
     model.update(sens=invProblem.sens,
-                 kappa=0.0008, c=1.0,
+                 kappa=0.0008, c=0.1,
                  reacDiff=rd,
                  nametag=f"TEST_it_{it+1}",
                  savePlot=False
