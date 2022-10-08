@@ -1,10 +1,9 @@
-import os
 from plot import *
-from materialModel import *
 from levelSet import LevelSet
 from problem import Problem
 from reactionDiffusion import RD
-
+from utilities import *
+import os
 
 
 '''=========================== PARAMETERS ================================'''
@@ -28,50 +27,61 @@ from reactionDiffusion import RD
 os.system("clear")
 print("\nExample 1 - EXPERIMENTAL PROBLEM (SINGLE CENTERED SQUARE - LS).\n")
 
-
 print("Creating model")
-model = LevelSet(el=100,ed=100,
-                 length=2.00, depth=2.00,
-                 velocities=[1.5,3.5]
-                 )
+realModel = LevelSet(el=100,ed=100,
+                     length=2.00, depth=2.00,
+                     velocities=[1.0,3.0]
+                     )
+sources   = [(0.20,0.20),(1.00,0.20),(1.80,0.20)]
+receivers = [(0.20+0.07*i,0.30) for i in range(24)]
 
 print("Creating problem (EXP)")
 realProblem = Problem(el=100,ed=100,length=2.0,depth=2.0,
                       I=1.0,freq=2.0,T=2.6,dt=0.002,
-                      sourcesPos=[(0.60,0.60)],receiversPos=[(0.00,0.00)],
-                      materialModel=model,
+                      sourcesPos=sources,receiversPos=receivers,
+                      materialModel=realModel,
                       ABC=(0,2),
                       saveResponse=True
                       )
-print("\nSolving")
+make_inclusions([(1.2,1.6,0.8,1.0)],realProblem.mesh,realModel.control,value=0.01)
+realModel.plot("plotDesign_TEST", plotSR=[sources,receivers])
 realProblem.solve()
 
-print("\nSetting up Reaction Diffusion")
+print("\nSetting up for inversion.. ")
 rd = RD(tau=5*pow(10,-6),
-        delta=0.03,
+        delta=0.5,
         frame=realProblem.frame
         )
 
-print("\nCreating problem (INV)")
+model = LevelSet(el=100,ed=100,
+                 length=2.00, depth=2.00,
+                 velocities=[1.0,3.0]
+                 )
+
 invProblem = Problem(el=100,ed=100,length=2.0,depth=2.0,
                      I=1.0,freq=2.0,T=2.6,dt=0.002,
-                     sourcesPos=[(0.60,0.60)],receiversPos=[(0.00,0.00)],
+                     sourcesPos=sources,receiversPos=receivers,
                      materialModel=model,
                      ABC=(0,2)
                      )
-print("\nSolving")
-invProblem.solve(exp=realProblem.exp)
 
-print("\nUpdating model")
-model.update(sens=invProblem.sens,
-             kappa=0.0008, c=0.1,
-             reacDiff=rd,
-             nametag="FirstUpdate_TEST"
-             )
+fobj = []
+for it in range(10):
+    print(f"\nSolving iteration: {it+1}")
+    invProblem.solve(exp=realProblem.exp)
+    fobj.append(invProblem.obj)
+
+    model.update(sens=invProblem.sens,
+                 kappa=0.0008, c=1.0,
+                 reacDiff=rd,
+                 nametag=f"TEST_it_{it+1}",
+                 savePlot=False
+                 )
+
+model.plot("FinalInv",save=True,plotSR=[sources,receivers])
+plot_f(fobj)
 
 
-
-print(" ")
-print("-"*40)
+print("\n"+"-"*40)
 print("Visit: https://github.com/sergiogibe ")
 print("-"*40)
