@@ -1,8 +1,17 @@
 import numpy as np
 from plot import *
+import os
+
 
 class PML:
-    def __init__(self, mesh, thickness, atten):
+    def __init__(self, 
+                 mesh: object, 
+                 thickness: int, 
+                 atten: int) -> None:
+        """   This class is responsible for:
+           - Creating the absorbing layers
+           - It also plots the final layout
+        """
 
         self.mesh  = mesh
         self.atten = atten             # atten = 1 => no PML
@@ -54,12 +63,15 @@ class PML:
             for i in range(0, nNodesL):
                 axField[(nNodesD - 1) - j, i] = self.forcePML[i + j * nNodesL]
 
+
         fig1, ax = plt.subplots(figsize=(7, 7))
-        ax.imshow(axField, cmap='binary')
+        ax.imshow(np.transpose(axField), cmap='binary_r')
         ax.set_yticklabels([])
         ax.set_xticklabels([])
-        plt.xlabel(' ')
-        plt.ylabel(' ')
-        plt.title(' ')
-        plt.savefig(f'../../FWI_Python/plots/PML_Layout.png')
+        #plt.xlim(0.0, self.mesh.length)
+        #plt.ylim(self.mesh.depth, 0.0)
+        plt.xlabel('X (km)')
+        plt.ylabel('Z (km)')
+        plt.gca().set_aspect('equal')
+        plt.savefig(f'{os.getcwd()}/plots/PML_Layout.png')
         plt.close(fig1)

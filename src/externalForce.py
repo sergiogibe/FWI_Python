@@ -2,14 +2,13 @@ import numpy as np
 
 class ExternalForce:
     
-    def __init__(self,sources,nNodes,pulse):
-        
+    def __init__(self, sources, nNodes: int, pulse) -> None:
+        """This class generates the external force object."""
         self.sourcePosition = sources
         self.pulse          = pulse
         self.nSources       = sources.shape[0]
         self.nNodes         = nNodes
         self.steps          = pulse.shape[1]
-
         self.force = np.empty([self.nSources,self.steps],dtype=np.float32)
         self.pulse[0, 0] = 0.0
         

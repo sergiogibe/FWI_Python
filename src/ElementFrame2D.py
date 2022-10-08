@@ -2,11 +2,13 @@ import numpy as np
 import scipy.sparse
 import scipy.sparse.linalg
 
+
+
 class ElementFrame:
 
-    def __init__(self, meshObj, sparse_mode):
+    def __init__(self, mesh: object, sparse_mode: bool=True):
 
-        self.mesh = meshObj
+        self.mesh = mesh
         self.sparse_mode = sparse_mode
         self.frameCoord = np.zeros([4, 2],dtype=np.float32)
         self.frameStiff = np.zeros([4, 4],dtype=np.float32)
@@ -14,6 +16,7 @@ class ElementFrame:
         self.stiff = np.zeros([self.mesh.nNodes, self.mesh.nNodes],dtype=np.float32)
 
         self.getFrame()
+        self.getDirichlet()
 
     def getCoordinates(self):
 
@@ -65,10 +68,7 @@ class ElementFrame:
         self.getMass()
         self.getStiffness()
 
-    def getConsistent(self,tau):
-
-        #Helpful info: tau = diffusion coefficient
-        #              (in case of tau = 1 -> get matrices only for sensitivity regularization)
+    def getConsistent(self,tau: float = 1.0, dirichlet: bool=True):
 
         stiff = np.zeros([self.mesh.nNodes, self.mesh.nNodes],dtype=np.float32)
         damp  = np.zeros([self.mesh.nNodes, self.mesh.nNodes],dtype=np.float32)
@@ -79,6 +79,16 @@ class ElementFrame:
                 for j in range(0, 4):
                     stiff[self.mesh.Connect[n, i] - 1, self.mesh.Connect[n, j] - 1] += tau*element.eStiff[i, j]
                     damp[self.mesh.Connect[n, i] - 1, self.mesh.Connect[n, j] - 1] += element.eDamp[i, j]
+
+        # APPLYING DIRICHLET CONDITIONS
+        if dirichlet:
+            for node in self.nodes_DirichletL:
+                stiff[node-1,:] = 0.0
+                damp[node-1,:]  = 0.0
+                stiff[:,node-1] = 0.0
+                damp[:,node-1]  = 0.0
+                stiff[node-1,node-1] = 1.0
+                damp[node-1,node-1] = pow(10,12)
 
         offsets = [-self.mesh.nElementsL - 2, -self.mesh.nElementsL - 1, -self.mesh.nElementsL,
                    -1, 0, 1,
@@ -95,6 +105,21 @@ class ElementFrame:
         damp = scipy.sparse.diags(diagonalsDamp, offsets, format='csc')
 
         return stiff, damp
+
+    def getDirichlet(self):
+        self.nodes_DirichletL = []
+        for i in range(self.mesh.nElementsL + 1):
+            self.nodes_DirichletL.append(i + 1)
+            self.nodes_DirichletL.append((i + 1) + (self.mesh.nElementsD * (self.mesh.nElementsL + 1)))
+        for i in range(self.mesh.nElementsD + 1):
+            self.nodes_DirichletL.append(1 + (self.mesh.nElementsL + 1) * i)
+            self.nodes_DirichletL.append(self.mesh.nElementsL + 1 + (self.mesh.nElementsL + 1) * i)
+        self.nodes_DirichletL = list(dict.fromkeys(self.nodes_DirichletL))
+        self.nodes_DirichletL.sort()
+
+
+
+
 
 
 class ElementConsistent:

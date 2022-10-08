@@ -1,20 +1,22 @@
 import numpy as np
 
+
 class LinearMesh2D:
 
-    def __init__(self, envConfig):
-
+    def __init__(self, envConfig: list) -> None:
+        """   This class is responsible for:
+        - Genarating the linear square elements mesh by keeping
+        track of all nodes' coordinates (mCoord) and their
+        connectivities (Connect)
+        """
         self.nElementsL      = envConfig[0]
         self.nElementsD      = envConfig[1]
         self.length          = envConfig[2]
         self.depth           = envConfig[3]
-
         self.nNodes          = (envConfig[0] +1) * (envConfig[1] +1)
         self.nElements       = (envConfig[0])   * (envConfig[1])
-
         self.mCoord          = np.zeros([self.nNodes ,2],dtype=np.float32)
         self.Connect         = np.zeros([self.nElements ,4], dtype=int)
-
         auxD = self.depth /self.nElementsD
         auxL = self.length /self.nElementsL
 

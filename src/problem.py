@@ -1,4 +1,5 @@
 import numpy as np
+import os
 from mesh import LinearMesh2D
 from pml import PML
 from rickerPulse import RickerPulse
@@ -7,6 +8,9 @@ from ElementFrame2D import ElementFrame
 from utilities import nodalPos
 from timeSolver import *
 from plot import *
+
+
+
 
 class Problem:
     def __init__(self,
@@ -17,7 +21,23 @@ class Problem:
                  materialModel: object,
                  ABC: tuple = None,
                  saveResponse: bool = False,  # Only used for generating data (exp problem).
-                 ):
+                 ) -> None:
+        """  This class is responsible for:
+        - Genarating the linear square elements mesh
+        - Creating the sources, receivers, and absorbing layers
+        - Generating the pulse (and external force)
+        - Calculating the FEM matrices frame and creating the problem
+        for the given model (e.g. LevelSet class object)
+        - Solving forward problem (with a switch in case of experimental 
+        problem, which saves the data in data_dir directory), and adjoint problem.
+
+
+        * The solvers first calculate the mass matrix, which is the
+        one that is not constant throughout the iterations. 
+        * The solvers are implemented in the Csolver.pyx file, using the 
+        Cython library. For any changes being effective, you will need to 
+        recompile the program as shown in README.md.
+        """
 
         # GENERATE MESH
         self.mesh: object = LinearMesh2D([el,ed,length,depth])
@@ -60,7 +80,10 @@ class Problem:
               diag_scale: bool = True,
               render: bool = None,
               exp = None
-              ):
+              ) -> None:
+        """Solves forward problem (with a switch in case of experimental 
+        problem, which saves the data in data_dir directory)
+        and adjoint problem."""
 
         if exp is not None:
             self.exp = np.float32(exp)
@@ -103,7 +126,7 @@ class Problem:
 
                 for receiver in range(0, self.nr):
                     self.exp[receiver, :, shot] = u[self.receivers[receiver] - 1, :, shot]
-            with open('../../FWI_Python/data_dir/exp_data.npy', 'wb') as f:
+            with open(f'{os.getcwd()}/data_dir/exp_data.npy', 'wb') as f:
                 np.save(f, self.exp)
 
             if render is not None:
