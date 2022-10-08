@@ -1,8 +1,8 @@
-from plot import *
-from levelSet import LevelSet
-from problem import Problem
-from reactionDiffusion import RD
-from utilities import *
+from src.plot import *
+from src.levelSet import LevelSet
+from src.problem import Problem
+from src.reactionDiffusion import RD
+from src.utilities import *
 import os
 
 
@@ -25,7 +25,7 @@ import os
 
 
 os.system("clear")
-print("\nExample 1 - EXPERIMENTAL PROBLEM (SINGLE CENTERED SQUARE - LS).\n")
+print("\nExample 1 - EXPERIMENTAL PROBLEM (SINGLE SQUARE - LS).\n")
 
 print("Creating model")
 realModel = LevelSet(el=100,ed=100,
@@ -66,7 +66,7 @@ invProblem = Problem(el=100,ed=100,length=2.0,depth=2.0,
                      )
 
 fobj = []
-for it in range(10):
+for it in range(20):
     print(f"\nSolving iteration: {it+1}")
     invProblem.solve(exp=realProblem.exp)
     fobj.append(invProblem.obj)

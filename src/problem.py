@@ -1,13 +1,13 @@
 import numpy as np
 import os
-from mesh import LinearMesh2D
-from pml import PML
-from rickerPulse import RickerPulse
-from externalForce import ExternalForce
-from ElementFrame2D import ElementFrame
-from utilities import nodalPos
-from timeSolver import *
-from plot import *
+from .mesh import LinearMesh2D
+from .pml import PML
+from .rickerPulse import RickerPulse
+from .externalForce import ExternalForce
+from .ElementFrame2D import ElementFrame
+from .utilities import nodalPos
+from .timeSolver import *
+from .plot import *
 
 
 

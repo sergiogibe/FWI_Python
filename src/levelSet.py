@@ -1,7 +1,7 @@
 import numpy as np
-from curveFitting import CurveFitting
-from plot import plot_contour
-from misc import COLORS
+from .curveFitting import CurveFitting
+from .plot import plot_contour
+from .misc import COLORS
 import scipy.sparse
 import scipy.sparse.linalg
 

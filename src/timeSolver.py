@@ -1,5 +1,5 @@
 import numpy as np
-import Csolver
+from . import Csolver
 
 def solverEXP_CCompiled(K,M,f,dt,sourceList):
 

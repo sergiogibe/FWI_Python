@@ -8,60 +8,96 @@ The purpose of this code is to help students learn the FWI method. The Python la
 
 ## Required libraries:
 - Stable on python 3.8.10 64-bit
-- NumPy
-- SciPy
-- Matplotlib (Linux: Sometimes you will have to install GUI backends -  ```pip install pyqt5```)
-- Cython (Make sure that you have Python 3.8.10 64-bit correctly installed.)
+- ```NumPy```
+- ```SciPy```
+- ```Matplotlib``` (Linux: Sometimes you will have to install GUI backends -  ```pip install pyqt5```)
+- ```Cython``` (Make sure that you have the above python version correctly installed.)
 - Maybe you should install C/C++ compilers (Linux: ```sudo apt install build-essential```) (Windows: try installing ```Mingw-w64```, or intel compilers)
 
-## First use. How to run?
+## First use - Tutorial.py. How to run?
 
-To run this code properly you need to open and run: ```EXAMPLE_1.py```. 
+Test the demo code ```tutorial.py```. You need to run it from inside the ```FWI_Python/``` package (as your current working directory).
 
-Then, you can use the modules to make your own FWI implementation. You also need to remember to compile the solvers as it is described bellow.
+Then, if everything is working fine, you can use the module to make your own FWI implementation as shown in ```EXAMPLE_1``` and ```EXAMPLE_2``` in the ```examples/``` folder.
+
+*Do not try to run the examples from inside the package directory because it will not work. This is the correct architecture:
+
+```your_project_name/```
+- ```your_implementation.py```
+- ```FWI_Python/```
+- ```plots/```
+- ```data_dir/```
+
+And you should import the package as follows: 
+
+```import FWI_Python as fwi```
 
 ## Altering Csolver code:
-If you want to change anything in the solver go to ```Csolver.pyx```. After that you need to erase the last build by using the command: ```python setup.py clean --all``` or ```python3 setup.py clean --all``` in terminal inside the ```src``` folder. To compile your new code just type ```python setup.py build_ext --inplace``` or ```python3 setup.py build_ext --inplace```.
+If you want to change anything in the solver go to ```Csolver.pyx```. After that you need to erase the last build by using the command: ```python setup.py clean --all``` or ```python3 setup.py clean --all``` in terminal INSIDE the ```FWI_Python/src``` folder. To compile your new code just type ```python setup.py build_ext --inplace``` or ```python3 setup.py build_ext --inplace```.
 
 ## General guidelines:
 
-**Modules:**
+**Classes:**
 
-- ```from source import Source``` and ```from receiver import Receiver``` - These modules creates the sources and the receivers.
-- ```from rickerPulse import RickerPulse``` - As a default, this code uses the Ricker's pulse.
-- ```from externalForce import ExternalForce``` - This module construct the external force based on the pulse used.
-- ```from materialModel import MatmodelLS, MatmodelFWI, MatmodelSIMP``` - This module contains all the different material models classes.
-- ```from ElementFrame2D import ElementFrame``` - This one initialize all the frames for the global matrices (M, K).
-- ```from timeSolver import *``` - This module contains all the acoustic solvers.
-- ```from plot import *``` - This modules calls some specific plot functions to help visualize the evolution of the problem. It is based on the Matplotlib library.
-- ```from optimizationControl import backTracking_LineS``` - This funtion contains a modified Armijo line search method.
+- ```fwi.LevelSet```:
 
-**These are some parameters you will need to set the problem:**
+    - Initializes the control function Level-Set for 2 materials.
 
-- lenght - Total lenght of the domain [km].
-- depth  - Total depth of the domain [km].
-- el - Number of elements lenght.
-- ed - Number of elements depth.
-- I - Pulse intensity.
-- freq - Pulse frequency [hz].
-- T - Time of observation [s].
-- dt - Newmark time delta [s].
-- delta - Reaction-diffusion pseudo-time.
-- niter - Total number of problem iterations.
-- diff - Reaction-diffusion coefficient.
-- velocities - Medium velocities list (slowest to fastest) [km/s].
-- normf - Sensitivity normalizing factor.
-- regf  - Sensitivity regularization factor.
+    - Calculates the element's slowness property (```mu```).
 
-**You can choose between these material models:**
+    - Calls the plot function (```plot_contour``` from ```plot``` file).
 
-- "FWI"  - for traditional not penalized FWI distribution function
-- "LS" and "MMLS"  - for Level-Set implicit surface. Recommended to identify sharp interfaces
-- "SIMP" - for Solid Isotropic Material with Penalization
+    - Uses the ```RD``` object to update the level-set function.
 
 
+- ```fwi.Problem```:
 
-## Tasks to be accomplished:
+    - Genarates the linear square elements ```mesh``` object.
+
+    - Creates the ```sources```, ```receivers```, and absorbing layers.
+
+    - Generates the ```pulse``` (and external ```force```).
+        
+    - Calculates the FEM matrices frame and creating the problem
+    for the given model (e.g. ```LevelSet``` class object).
+    
+    - Solves the forward problem (with a switch in case of experimental 
+    problem, which saves the data in ```data_dir``` directory), and the adjoint problem.
+
+
+        * The solvers first calculate the mass matrix, which is the
+    one that is not constant throughout the iterations. 
+
+        * The solvers are implemented in the ```Csolver.pyx``` file, using the 
+    ```Cython``` library. For any changes being effective, you will need to 
+    recompile the program as shown in ```README.md```.
+
+
+- ```fwi.RD```:
+
+    - Creates the Reaction-Diffusion object from ```RD``` class. This object updates the control function inside its own update method (e.g. ```LevelSet``` Class update method).
+
+    - The variables ```dstiff```, ```damp```, and ```stiff``` are the consistent matrices used to backup the reaction-diffusion operation and the sensitivity regularization procedure.
+
+
+**Parameters:**
+
+- ```lenght``` - Total lenght of the domain [km].
+- ```depth```  - Total depth of the domain [km].
+- ```el``` - Number of elements lenght.
+- ```ed``` - Number of elements depth.
+- ```I``` - Pulse intensity.
+- ```freq``` - Pulse frequency [hz].
+- ```T``` - Time of observation [s].
+- ```dt``` - Newmark time delta [s].
+- ```delta``` - Reaction-diffusion pseudo-time.
+- ```niter``` - Total number of problem iterations.
+- ```diff``` - Reaction-diffusion coefficient.
+- ```velocities``` - Medium velocities list (slowest to fastest) [km/s].
+- ```normf``` - Sensitivity normalizing factor.
+- ```regf```  - Sensitivity regularization factor.
+
+## Ideas for the future:
 
 - [x] Improve forward solver speed.
 - [x] Implement perfectly matched layer (absorbing boundary).
