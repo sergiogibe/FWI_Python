@@ -1,13 +1,13 @@
-## An FWI implementation in Python..
+## An FWI implementation using Python..
 
-The Full Waveform Inversion method was first introduced by Lailly and Tarantola. It consists of a comparative analysis between the response of a simulated model and that of experimental data collected. This is characterized as a highly non-linear PDE- constrained optimization problem, which in many cases presents a particularly difficult solution to be found. Recent works show a recurrent difficulty in identifying more complex profiles, justifying the constant search for improvement of the inversion procedure. Besides this, the solution to the transient propagation problem makes the method very costly in terms of processing time and memory usage, therefore the solution of this problem is the target of several studies on HPC (High-Performance Computing). Regarding the application of the method, the FWI acoustic model has been a commonly used tool in the oil and gas industry to estimate velocity models.
+The Full Waveform Inversion method was first introduced by Lailly and Tarantola. It consists of a comparative analysis between the response of a simulated model and that of experimental data collected. It defined as a non-linear PDE- constrained optimization problem. Recent works show a recurrent difficulty in identifying more complex profiles, justifying the constant search for improvement of the inversion procedure. Besides this, the solution to the transient propagation problem makes the method very costly in terms of processing time and memory usage. Thus, the solution to this problem is the target of several studies on HPC (High-Performance Computing). Regarding the application of the method, the FWI acoustic model has been a commonly used tool in the oil and gas industry to estimate velocity models.
 
 ## About this code:
 
-The purpose of this code is to help students learn the FWI method. The Python language was chosen precisely for its clean syntax. To make it also possible to simulate larger problems a solution using the Cython module was implemented. Using the Cython library allows the solvers to be compiled in C. Also, in this way, you can utilize the advantages of multi-threading with the GIL release. This way it is possible to keep the syntax close to Python and get a very solid performance. The implementation is based on the finite element method and performs the update of the distribution function by using the reaction-diffusion method. 
+The purpose of this code is to help students learn the FWI method. Python language was chosen precisely for its clean syntax. A solution using the Cython module was implemented to make it possible to run bigger problems. This library allows the solvers to be compiled in C, utilizing the advantages of multi-threading with the GIL release. By doing this, we keep the syntax close to Python and get very solid performances. The discrete problem is implemented using the Finite Elements Method. The Reaction-Diffusion transport equation was used as the algorithm to update the problem. (The Formulation is presented in the ```fwi_std_formulation.pdf``` file.)
 
 ## Required libraries:
-- Stable on python 3.8.10 64-bit
+- Stable on ```Python 3.8.10 64-bit``` (Linux-Debian preferred)
 - ```NumPy```
 - ```SciPy```
 - ```Matplotlib``` (Linux: Sometimes you will have to install GUI backends -  ```pip install pyqt5```)
@@ -20,7 +20,7 @@ Test the demo code ```tutorial.py```. You need to run it from inside the ```FWI_
 
 Then, if everything is working fine, you can use the module to make your own FWI implementation as shown in ```EXAMPLE_1``` and ```EXAMPLE_2``` in the ```examples/``` folder.
 
-*Do not try to run the examples from inside the package directory because it will not work. This is the correct architecture:
+*Do not try to run the examples from inside the package directory because it will not work. This is the correct directory architecture:
 
 ```your_project_name/```
 - ```your_implementation.py```
@@ -82,7 +82,7 @@ If you want to change anything in the solver go to ```Csolver.pyx```. After that
 
 **Parameters:**
 
-- ```lenght``` - Total lenght of the domain [km].
+- ```length``` - Total length of the domain [km].
 - ```depth```  - Total depth of the domain [km].
 - ```el``` - Number of elements lenght.
 - ```ed``` - Number of elements depth.
@@ -111,13 +111,13 @@ If you want to change anything in the solver go to ```Csolver.pyx```. After that
 - [ ] Implement elastic-wave model.
 
 
-## Contact:
+## Feel free to contact me:
 
 sergiovitor@poli.ufrj.br
 
 or
 
-sergio.vitor@posgrad.ufsc.br
+sergio.vitor@posgrad.ufsc.br      (preferred)
 
 
 
