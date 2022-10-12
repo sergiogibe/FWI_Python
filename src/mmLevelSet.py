@@ -1,9 +1,9 @@
 import numpy as np
-from curveFitting import CurveFitting
-from plot import plot_contour
+from .curveFitting import CurveFitting
+from .plot import plot_contour
 import scipy.sparse
 import scipy.sparse.linalg
-from misc import COLORS
+from .misc import COLORS
 
 class MMLevelSet:
     def __init__(self,

@@ -43,18 +43,18 @@ class Problem:
         self.mesh: object = LinearMesh2D([el,ed,length,depth])
 
         # MAKE SOURCES AND RECEIVERS
-        self.sources   = nodalPos(sourcesPos, self.mesh)
-        self.receivers = nodalPos(receiversPos, self.mesh)
+        self._sources   = nodalPos(sourcesPos, self.mesh)
+        self._receivers = nodalPos(receiversPos, self.mesh)
 
         # APPLY ABSORBING CONDITIONS
         if ABC is None:
-            self.absLayer: object = PML(self.mesh, thickness=0, atten=1)
+            self._absLayer: object = PML(self.mesh, thickness=0, atten=1)
         else:
-            self.absLayer: object = PML(self.mesh, thickness=ABC[0], atten=ABC[1])
+            self._absLayer: object = PML(self.mesh, thickness=ABC[0], atten=ABC[1])
 
         # SET EXTERNAL FORCES
-        self.pulse: object = RickerPulse([I,freq,T,dt,1.0])
-        self.force: object = ExternalForce(self.sources, self.mesh.nNodes, self.pulse.pulse)
+        self._pulse: object = RickerPulse([I,freq,T,dt,1.0])
+        self._force: object = ExternalForce(self._sources, self.mesh.nNodes, self._pulse.pulse)
 
         # GET FINITE ELEMENT STIFFNESS FRAME
         self.frame: object = ElementFrame(self.mesh, sparse_mode=True)
@@ -66,13 +66,13 @@ class Problem:
         self.save: bool = saveResponse
 
         # SET MAIN INSTANCE ATTRIBUTES
-        self.nn: int   = self.mesh.nNodes
-        self.ne: int   = self.mesh.nElements
-        self.dt: float = self.pulse.deltaTime
-        self.T:  float = self.pulse.timeOfObservation
-        self.st: int   = self.pulse.steps
-        self.ns: int   = self.sources.shape[0]
-        self.nr: int   = self.receivers.shape[0]
+        self._nn: int   = self.mesh.nNodes
+        self._ne: int   = self.mesh.nElements
+        self._dt: float = self._pulse.deltaTime
+        self._T:  float = self._pulse.timeOfObservation
+        self._st: int   = self._pulse.steps
+        self._ns: int   = self._sources.shape[0]
+        self._nr: int   = self._receivers.shape[0]
 
 
 
@@ -88,12 +88,12 @@ class Problem:
         if exp is not None:
             self.exp = np.float32(exp)
 
-        M     = np.zeros([self.nn, 1], dtype=np.float32)
-        mCons = np.zeros([self.nn, self.nn], dtype=np.float32)
+        M     = np.zeros([self._nn, 1], dtype=np.float32)
+        mCons = np.zeros([self._nn, self._nn], dtype=np.float32)
         phiE  = np.zeros([4, 1], dtype=np.float32)
 
         # SWEEPING THROUGH ELEMENTS:
-        for n in range(0, self.ne):
+        for n in range(0, self._ne):
             mu = self.materialModel.eMu(n,self.mesh)
             for i in range(0, 4):
                 for j in range(0, 4):
@@ -104,28 +104,28 @@ class Problem:
         if diag_scale:
             mtot = mCons.sum()
             c = mtot / np.trace(mCons)
-            for i in range(0, self.nn):
+            for i in range(0, self._nn):
                 M[i, 0] = c * mCons[i, i]
         # LUMPING MASS (ROW-SUM):
         else:
-            M = mCons.sum(axis=1).reshape((self.nn, 1))
+            M = mCons.sum(axis=1).reshape((self._nn, 1))
 
 
         # EXPERIMENTAL
         if self.save:
 
-            u = np.zeros([self.nn, self.st, self.ns], dtype=np.float32)
-            self.exp = np.float32(np.zeros([self.nr, self.st, self.ns]))
-            for shot in range(0, self.ns):
+            u = np.zeros([self._nn, self._st, self._ns], dtype=np.float32)
+            self.exp = np.float32(np.zeros([self._nr, self._st, self._ns]))
+            for shot in range(0, self._ns):
                 print(f"SOLVING EXP       - SHOT {shot+1} ")
                 u[:, :, shot] = solverEXP1shotPML_CCompiled(self.frame.stiff, M,
-                                                            self.force.force,
-                                                            self.dt,
-                                                            self.sources[shot], shot,
-                                                            self.absLayer).base
+                                                            self._force.force,
+                                                            self._dt,
+                                                            self._sources[shot], shot,
+                                                            self._absLayer).base
 
-                for receiver in range(0, self.nr):
-                    self.exp[receiver, :, shot] = u[self.receivers[receiver] - 1, :, shot]
+                for receiver in range(0, self._nr):
+                    self.exp[receiver, :, shot] = u[self._receivers[receiver] - 1, :, shot]
             with open(f'{os.getcwd()}/data_dir/exp_data.npy', 'wb') as f:
                 np.save(f, self.exp)
 
@@ -136,22 +136,22 @@ class Problem:
         else:
 
             self.obj = 0
-            self.sens = np.zeros([self.nn, 1], dtype=np.float32)
-            for shot in range(0, self.ns):
+            self.sens = np.zeros([self._nn, 1], dtype=np.float32)
+            for shot in range(0, self._ns):
                 print(f"SOLVING FORWARD   - SHOT {shot + 1} ")
                 v, obj, misfit = solverF1shot_CCompiled(self.frame.stiff, M,
-                                                        self.force.force,
-                                                        self.dt,
-                                                        self.sources[shot], shot,
-                                                        self.receivers,
+                                                        self._force.force,
+                                                        self._dt,
+                                                        self._sources[shot], shot,
+                                                        self._receivers,
                                                         self.exp
                                                         )
 
                 print(f"SOLVING ADJOINT   - SHOT {shot + 1} ")
                 sens = solverS_CCompiled(self.frame.stiff, M,
                                          misfit,
-                                         self.dt,
-                                         self.receivers,
+                                         self._dt,
+                                         self._receivers,
                                          v
                                          )
 

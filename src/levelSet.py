@@ -23,11 +23,11 @@ class LevelSet:
         self.depth       = depth
         self.nn          = (el+1)*(ed+1)
         self.control     = np.ones([self.nn, 1], dtype=np.float32)*(-0.01)
-        self.velocities  = velocities
+        self._velocities  = velocities
         if len(velocities) > 2:
             exit(print('This LevelSet Class accounts for 2 materials only. For more try MMLevelSet Class.'))
-        self.mus         = [1 / pow(self.velocities[i], 2) for i in range(0, 2)]
-        self.levels      = [-1.00, 0.00, 1.00]
+        self._mus         = [1 / pow(self._velocities[i], 2) for i in range(0, 2)]
+        self._levels      = [-1.00, 0.00, 1.00]
 
 
     def eMu(self,
@@ -41,7 +41,7 @@ class LevelSet:
             eControl[node, 0] = self.control[mesh.Connect[eNumber, node] - 1, 0]
         fit = CurveFitting(eControl)
         fit.fitLevelSet(order=2, gridSize=3)
-        eMu = fit.distribute(self.mus[1], self.mus[0])
+        eMu = fit.distribute(self._mus[1], self._mus[0])
         return eMu
 
 
@@ -51,7 +51,7 @@ class LevelSet:
         for j in range(self.ed+1):
             for i in range(self.el+1):
                 vp[j,i] = self.control[i+j*101]
-        plot_contour(2, str(nametag), vp, (-1,1), levels=self.levels, colors=COLORS,
+        plot_contour(2, str(nametag), vp, (-1,1), levels=self._levels, colors=COLORS,
                      fill=True, extent = (self.length,self.depth), plotSR=plotSR,
                      save=save)
 
@@ -69,7 +69,7 @@ class LevelSet:
         """Uses the reacDiff object to update the level-set function"""
 
         # APPLY MATERIAL MODEL DERIVATIVE WITH RESPECT TO CONTROL FUNCTION
-        sens *= self.mus[1] - self.mus[0]
+        sens *= self._mus[1] - self._mus[0]
 
         # REGULARIZATION PROCEDURE
         if regSens:

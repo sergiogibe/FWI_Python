@@ -100,7 +100,7 @@ If you want to change anything in the solver go to ```Csolver.pyx```. After that
 ## Ideas for the future:
 
 - [x] Improve forward solver speed.
-- [x] Implement perfectly matched layer (absorbing boundary).
+- [ ] Implement perfectly matched layer (absorbing boundary).
 - [ ] Finish the implementation of other material models.
 - [ ] Implement BFGS.
 - [ ] Improve mounting and updating speed (especially level set curve fitting).
